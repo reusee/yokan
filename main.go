@@ -3,6 +3,8 @@ package main
 import (
   "flag"
   "log"
+  "math/rand"
+  "time"
 
   "github.com/BurntSushi/xgbutil"
   "github.com/BurntSushi/xgbutil/xevent"
@@ -13,6 +15,8 @@ var X *xgbutil.XUtil
 
 func init() {
   flag.Parse()
+
+  rand.Seed(time.Now().UnixNano())
 
   var err error
   X, err = xgbutil.NewConn()

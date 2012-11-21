@@ -40,6 +40,7 @@ func NewWindow() *Window {
   })
 
   win.Listen(xproto.EventMaskKeyPress)
+  win.Clear(0, 0, 0, 0)
   win.Map()
 
   self := &Window{

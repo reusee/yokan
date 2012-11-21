@@ -9,7 +9,7 @@ import (
 
 const (
   CMD_FREQ = time.Millisecond * 200
-  MOVE_STEP = 100
+  MOVE_STEP = 30
 )
 
 func (self *Window) bindKeys() {
@@ -31,6 +31,14 @@ func (self *Window) bindKeys() {
     }
   }).Connect(X, self.Id, "c", false)
 
+  self.freqLimitedFunc(func(X *xgbutil.XUtil, ev xevent.KeyPressEvent) {
+    file := self.set.Rand()
+    if file != nil {
+      self.currentFile = file
+      file.Draw()
+    }
+  }).Connect(X, self.Id, "f", false)
+
   // image operations
 
   self.freqLimitedFunc(func(X *xgbutil.XUtil, ev xevent.KeyPressEvent) {
@@ -44,22 +52,22 @@ func (self *Window) bindKeys() {
   }).Connect(X, self.Id, "x", false)
 
   keybind.KeyPressFun(func(X *xgbutil.XUtil, ev xevent.KeyPressEvent) {
-    self.currentFile.y += MOVE_STEP
+    self.currentFile.Move(0, MOVE_STEP)
     self.currentFile.Draw()
   }).Connect(X, self.Id, "w", false)
 
   keybind.KeyPressFun(func(X *xgbutil.XUtil, ev xevent.KeyPressEvent) {
-    self.currentFile.y -= MOVE_STEP
+    self.currentFile.Move(0, -MOVE_STEP)
     self.currentFile.Draw()
   }).Connect(X, self.Id, "s", false)
 
   keybind.KeyPressFun(func(X *xgbutil.XUtil, ev xevent.KeyPressEvent) {
-    self.currentFile.x += MOVE_STEP
+    self.currentFile.Move(MOVE_STEP, 0)
     self.currentFile.Draw()
   }).Connect(X, self.Id, "a", false)
 
   keybind.KeyPressFun(func(X *xgbutil.XUtil, ev xevent.KeyPressEvent) {
-    self.currentFile.x -= MOVE_STEP
+    self.currentFile.Move(-MOVE_STEP, 0)
     self.currentFile.Draw()
   }).Connect(X, self.Id, "d", false)
 

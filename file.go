@@ -93,9 +93,24 @@ func (self *File) Scale(ratio float64) {
   self.ximage.CreatePixmap()
   self.ximage.XDraw()
   self.x, self.y = 0, 0
+  self.window.Clear(0, 0, 0, 0)
+}
+
+func (self *File) Move(dx int, dy int) {
+  if dx > 0 {
+    self.window.Clear(self.x, self.y, dx, self.ximage.Rect.Dy())
+  } else if dx < 0 {
+    self.window.Clear(self.x + self.ximage.Rect.Dx() + dx, self.y, -dx, self.ximage.Rect.Dy())
+  }
+  if dy > 0 {
+    self.window.Clear(self.x, self.y, self.ximage.Rect.Dx(), dy)
+  } else if dy < 0 {
+    self.window.Clear(self.x, self.y + self.ximage.Rect.Dy() + dy, self.ximage.Rect.Dx(), -dy)
+  }
+  self.x += dx
+  self.y += dy
 }
 
 func (self *File) Draw() {
-  self.window.Clear(0, 0, 0, 0)
   self.ximage.XExpPaint(self.window.Id, self.x, self.y)
 }

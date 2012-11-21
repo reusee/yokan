@@ -1,5 +1,9 @@
 package main
 
+import (
+  "math/rand"
+)
+
 const (
   FORWARD = iota
   BACKWARD
@@ -34,6 +38,9 @@ func (self *Set) Get(direction int) *File {
       if start + i < len(self.files) {
         self.files[start + i].load()
       }
+      if start - i > 0 {
+        self.files[start - i].load()
+      }
     }
   }(self.index)
   return self.files[self.index]
@@ -47,6 +54,14 @@ func (self *Set) Next() *File {
 func (self *Set) Prev() *File {
   self.prevIndex()
   return self.Get(BACKWARD)
+}
+
+func (self *Set) Rand() *File {
+  n := rand.Intn(len(self.files))
+  for i := 0; i < n; i++ {
+    self.nextIndex()
+  }
+  return self.Get(FORWARD)
 }
 
 func (self *Set) nextIndex() {
