@@ -7,14 +7,14 @@ import (
 	"github.com/BurntSushi/xgbutil/xwindow"
 	"github.com/BurntSushi/xgbutil/keybind"
 	"github.com/BurntSushi/xgbutil/mousebind"
-	"github.com/BurntSushi/xgbutil/ewmh"
 	"github.com/BurntSushi/xgbutil/icccm"
-	"github.com/BurntSushi/xgbutil/xgraphics"
 )
 
 type Window struct {
   *xwindow.Window
   set *Set
+  forbidCommand bool
+  currentFile *File
 }
 
 func NewWindow() *Window {
@@ -25,7 +25,7 @@ func NewWindow() *Window {
   }
 
   width, height := 800, 600
-  win.Create(X.RootWin(), 0, 0, width, height, 0)
+  win.Create(X.RootWin(), 0, 0, width, height, xproto.CwBackPixel, 0x0)
 
   win.WMGracefulClose(func(w *xwindow.Window) {
     xevent.Detach(w.X, w.Id)
@@ -40,20 +40,15 @@ func NewWindow() *Window {
   })
 
   win.Listen(xproto.EventMaskKeyPress)
+  win.Map()
 
-  self := &Window{win, nil}
+  self := &Window{
+    win,
+    nil,
+    false,
+    nil,
+  }
   self.bindKeys()
 
   return self
-}
-
-func (self *Window) SetName(name string) {
-  ewmh.WmNameSet(X, self.Id, name)
-}
-
-func (self *Window) DrawImage(image *xgraphics.Image) {
-  image.XSurfaceSet(self.Id)
-  image.XDraw()
-  image.XPaint(self.Id)
-  self.Map()
 }

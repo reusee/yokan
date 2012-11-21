@@ -1,6 +1,8 @@
 package main
 
 import (
+  "flag"
+  "path/filepath"
   "sync"
   "image"
   "os"
@@ -16,11 +18,41 @@ type File struct {
   loadOnce sync.Once
   invalid bool
   ximage *xgraphics.Image
-  mutex sync.Mutex
+  originXimage *xgraphics.Image
+  loadMutex sync.Mutex
+  scale float64
+  window *Window
+  x int
+  y int
+}
+
+func loadFiles(window *Window) []*File {
+  root := flag.Arg(0)
+  if root == "" {
+    root = "."
+  }
+  var files []*File
+  filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
+    if !f.IsDir() {
+      files = append(files, NewFile(path, window))
+    }
+    return nil
+  })
+  return files
+}
+
+func NewFile(path string, window *Window) *File {
+  return &File{
+    path: path,
+    scale: 1.0,
+    window: window,
+    x: 0,
+    y: 0,
+  }
 }
 
 func (self *File) load() {
-  self.mutex.Lock()
+  self.loadMutex.Lock()
   self.loadOnce.Do(func() {
     f, err := os.Open(self.path)
     if err != nil {
@@ -33,7 +65,37 @@ func (self *File) load() {
       return
     }
     self.ximage = xgraphics.NewConvert(X, image)
+    self.ximage.CreatePixmap()
+    self.ximage.XDraw()
+    self.originXimage = xgraphics.NewConvert(X, image)
     fmt.Printf("loaded %s\n", self.path)
   })
-  self.mutex.Unlock()
+  self.loadMutex.Unlock()
+}
+
+func (self *File) ZoomIn() {
+  self.scale *= 1.5
+  self.Scale(self.scale)
+}
+
+func (self *File) ZoomOut() {
+  self.scale *= 0.5
+  self.Scale(self.scale)
+}
+
+func (self *File) Scale(ratio float64) {
+  originRect := self.originXimage.Rect
+  newWidth := int(float64(originRect.Dx()) * ratio)
+  newHeight := int(float64(originRect.Dy()) * ratio)
+  newImage := Resize(self.originXimage, originRect, newWidth, newHeight)
+  self.ximage.Destroy()
+  self.ximage = xgraphics.NewConvert(X, newImage)
+  self.ximage.CreatePixmap()
+  self.ximage.XDraw()
+  self.x, self.y = 0, 0
+}
+
+func (self *File) Draw() {
+  self.window.Clear(0, 0, 0, 0)
+  self.ximage.XExpPaint(self.window.Id, self.x, self.y)
 }

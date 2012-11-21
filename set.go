@@ -29,6 +29,13 @@ func (self *Set) Get(direction int) *File {
     }
     self.files[self.index].load()
   }
+  go func(start int) { // preload
+    for i := 1; i < 3; i++ {
+      if start + i < len(self.files) {
+        self.files[start + i].load()
+      }
+    }
+  }(self.index)
   return self.files[self.index]
 }
 

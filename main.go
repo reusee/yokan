@@ -1,11 +1,8 @@
 package main
 
 import (
-  "log"
   "flag"
-  "path/filepath"
-  "os"
-  "fmt"
+  "log"
 
   "github.com/BurntSushi/xgbutil"
   "github.com/BurntSushi/xgbutil/xevent"
@@ -26,14 +23,13 @@ func init() {
 }
 
 func main() {
-  set := NewSet(loadFiles())
-  if len(set.files) == 0 {
-    return
-  }
-  fmt.Printf("files loaded\n")
-
   window := NewWindow()
   if window == nil {
+    return
+  }
+
+  set := NewSet(loadFiles(window))
+  if len(set.files) == 0 {
     return
   }
   window.set = set
@@ -42,22 +38,8 @@ func main() {
   if file == nil {
     return
   }
-  window.DrawImage(file.ximage)
+  window.currentFile = file
+  file.Draw()
 
   xevent.Main(X)
-}
-
-func loadFiles() []*File {
-  root := flag.Arg(0)
-  if root == "" {
-    root = "."
-  }
-  var files []*File
-  filepath.Walk(root, func(path string, f os.FileInfo, err error) error {
-    if !f.IsDir() {
-      files = append(files, &File{path: path})
-    }
-    return nil
-  })
-  return files
 }
